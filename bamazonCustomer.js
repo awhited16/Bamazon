@@ -20,30 +20,17 @@ connection.connect(function(err) {
   console.log("connected as id " + connection.threadId);
   // connection.end();
   displayItems();
-  start();
+  setTimeout(start, 10);
 });
 
 function displayItems() {
   connection.query("SELECT * FROM products", function(err, res) {
     if (err) throw err;
     for (var i = 0; i < res.length; i++) {
-      console.log("ID: " + res[i].id + "\nProduct Name: " + res[i].product_name + "\nPrice: $" + res[i].price);
+      console.log("ID: " + res[i].item_id + "\nProduct Name: " + res[i].product_name + "\nPrice: $" + res[i].price + "\n---------------");
     }
-    console.log("-----------------------------------");
   });
-}
-
-
-// connection.connect();
- 
-// connection.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
-//   if (error) throw error;
-//   console.log('The solution is: ', results[0].solution);
-// });
- 
-// connection.end();
-
-// var purchaseQuantity = process.argv[3]
+};
 
 function start() {
   inquirer.prompt([
@@ -58,16 +45,18 @@ function start() {
       message: "How many units would you like?"
     }
   ]).then(function(user) {
-    var unitsWanted = user.productUnits;
     var product = user.productID;
-
-    if (unitsWanted > units) {
-      console.log("Insufficient quantity!");
-    }
-    else {
-      //reduce quantity in database by unitsWanted
-      updateQuantity();
-    }
+    var unitsWanted = user.productUnits;
+    connection.query("SELECT * FROM products WHERE ?", [{item_id: product}], function(err, res) {
+    
+      if (unitsWanted > products.units) {
+        console.log("Insufficient quantity!");
+      }
+      else {
+        //reduce quantity in database by unitsWanted
+        updateQuantity();
+      }
+    });
   });
 };
 
