@@ -45,35 +45,32 @@ function start() {
       message: "How many units would you like?"
     }
   ]).then(function(user) {
-    var product = user.productID;
-    var unitsWanted = user.productUnits;
-    connection.query("SELECT * FROM products WHERE ?", [{item_id: product}], function(err, res) {
-    
-      if (unitsWanted > products.units) {
+    var productWanted = user.productID;
+    var unitsWanted = parseInt(user.productUnits);
+    connection.query("SELECT * FROM products WHERE ?", [{item_id: productWanted}], function(err, res) {
+      console.log(res);
+      console.log(res[0].stock_quantity);
+      if (unitsWanted > res[0].stock_quantity) {
         console.log("Insufficient quantity!");
+        start();
       }
       else {
         //reduce quantity in database by unitsWanted
         updateQuantity();
+        console.log("Your purchase total is $" + res[0].price);
       }
+
+      function updateQuantity() {
+        console.log("Updating quantity");
+        connection.query("UPDATE bamazon.products SET stock_quantity = stock_quantity - ? WHERE item_id = ?",
+          [unitsWanted, productWanted],
+          function(err, res) {
+            if (err) throw err;
+            console.log(res.affectedRows + " quantity updated\n");
+          }
+        )
+      };
     });
   });
 };
 
-function updateQuantity() {
-  console.log("Updating quantity");
-  var query = connection.query(
-    "UPDATE products SET ? WHERE ?",
-    [
-      {
-        id: product
-      },
-      {
-        stock_quantity: stock_quantity-unitsWanted
-      }
-    ],
-    function(err, res) {
-      if (err) throw err;
-      console.log(res.affectedRows + " quantity updated\n");
-    }
-  )};
